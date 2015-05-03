@@ -118,3 +118,24 @@ function fireTTS() {
   playLocalUrl(ttsURL);
   console.log(ttsURL);
 }
+
+function ttsItaliano(text) {
+  var ttsURL = window.location.origin + "/tts?lang=it-IT&text=" + text;
+  remotePlayUrl(ttsURL);
+  playLocalUrl(ttsURL);
+  console.log(ttsURL);  
+}
+
+function proverbio() {
+
+  var oReq = new XMLHttpRequest();
+
+  oReq.onload = function reqListener () {
+    var lines = this.responseText.split('\n');
+    ttsItaliano(lines[Math.floor(Math.random()*lines.length)]);
+  }
+
+  oReq.open("get", "/proverbi.txt", true);
+  oReq.send();
+
+}

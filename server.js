@@ -140,7 +140,7 @@ app.get('/tts', function(req, res) {
 
   if (text == undefined || lang == undefined || text == "" || lang == "") {
     res.send("Error on query string");
-    exit(1);
+    return;
   }
 
   console.log(req.query.lang + " " + req.query.text);
