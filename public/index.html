@@ -78,8 +78,7 @@
         <div id="buttons-container"></div>
       </div>
       <div class="col-md-4">
-        <button class="btn btn-danger btn-lg" onclick="startRecording(this);" id="startrecording" name="Start Recording">🔊 Start Recording</button>
-        <button class="btn btn-danger btn-lg" onclick="stopRecording(this);" id="startrecording" name="Stop Recording" disabled>🔇 Stop Recording</button>
+        <button class="btn btn-danger btn-lg" onclick="startStopRecording(this);" id="recbutton" name="Recording">🔊</button>
         <div>
           <strong>Local playback: </strong>
           <input type="checkbox" id="localPlaybackToggle" onchange="toggleLocalPlayback();" checked data-toggle="toggle">

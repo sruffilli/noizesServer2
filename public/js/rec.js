@@ -5,6 +5,7 @@ function __log(e, data) {
 var audio_context;
 var recorder;
 var askedUserConsent = false;
+var recording = false;
 
 function startUserMedia(stream) {
   var input = audio_context.createMediaStreamSource(stream);
@@ -13,7 +14,7 @@ function startUserMedia(stream) {
   __log('Recorder initialised.');
 }
 
-function startRecording(button) {
+function startStopRecording(button) {
   if (!askedUserConsent) {
     navigator.getUserMedia({
       audio: true
@@ -26,23 +27,20 @@ function startRecording(button) {
 
   } else {
 
-    recorder && recorder.record();
-    button.disabled = true;
-    button.nextElementSibling.disabled = false;
-    __log('Recording...');
+    if (!recording) {
+      recorder && recorder.record();
+      recording=true;
+      document.getElementById('recbutton').innerHTML="🔇";
+      __log('Recording...');
+    } else {
+      recorder && recorder.stop();
+      recording=false;
+      document.getElementById('recbutton').innerHTML="🔊";
+      upload();
+      recorder.clear();
+
+    }
   }
-}
-
-function stopRecording(button) {
-  recorder && recorder.stop();
-  button.disabled = true;
-  button.previousElementSibling.disabled = false;
-  __log('Stopped recording.');
-
-  // create WAV download link using audio data blob
-  upload();
-
-  recorder.clear();
 }
 
 function upload() {
@@ -79,7 +77,10 @@ window.onload = function init() {
   try {
     // webkit shim
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
-    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+    navigator.getUserMedia = ( navigator.getUserMedia ||
+                       navigator.webkitGetUserMedia ||
+                       navigator.mozGetUserMedia ||
+                       navigator.msGetUserMedia);
     window.URL = window.URL || window.webkitURL;
 
     audio_context = new AudioContext;
