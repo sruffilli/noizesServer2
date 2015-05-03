@@ -11,7 +11,7 @@ var tmp = require('tmp');
 
 //express + socket.io setup
 var express = require('express');
-var multer  = require('multer');
+var multer = require('multer');
 var app = express();
 var webServer = require('http').createServer(app);
 
@@ -134,7 +134,7 @@ io.on('connection', function(socket) {
  *   TTS
  */
 
- app.get('/tts', function(req, res) {
+app.get('/tts', function(req, res) {
   var lang = req.query.lang;
   var text = req.query.text;
 
@@ -158,7 +158,7 @@ io.on('connection', function(socket) {
 
   if (exec(shellescape(ttsCMD)).code == 0) {
     console.log("TTS OK");
-    var wav2mp3CMD = ['ffmpeg -i ', wavePath, mp3Path]
+    var wav2mp3CMD = ['avconv', '-i', wavePath, mp3Path]
     console.log("Executing command: " + shellescape(wav2mp3CMD));
 
     if (exec(shellescape(wav2mp3CMD)).code == 0) {
@@ -179,13 +179,21 @@ io.on('connection', function(socket) {
  *   WaveUploader (for push to talk)
  */
 
-app.post('/uploadWav',[ multer({ dest: './public/uploads/'}), function(req, res){
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+app.post('/uploadWav', [multer({
+  dest: './public/uploads/'
+}), function(req, res) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 
-    console.log(req.files.file.path) // form files
-    console.log(req.files.file);
-    exec('ffmpeg -i ' + req.files.file.path + ' ' + req.files.file.path + '.mp3');
-    exec('rm ' + req.files.file.path);
-    res.send(fqdn+'/uploads/'+req.files.file.name + '.mp3').end()
+  console.log("Upload received and saved to " + req.files.file);
+
+  var avconvCMD = 'avconv -i ' + req.files.file.path + ' ' + req.files.file.path + '.mp3';
+
+  console.log("Executing " + avconvCMD);
+
+  if (exec(avconvCMD).code == 0) {
+    console.log("conversion OK");
+  } else console.log("conversion KO");
+  exec('rm ' + req.files.file.path);
+  res.send(fqdn + '/uploads/' + req.files.file.name + '.mp3').end()
 }]);

@@ -46,7 +46,7 @@ function uploadBlob(blob) {
     if (xmlHttpRequest.readyState === 4) {
       if (xmlHttpRequest.status === 200) {
         console.log(xmlHttpRequest.responseText);
-        playRemoteUrl(xmlHttpRequest.responseText);
+        remotePlayUrl(xmlHttpRequest.responseText);
       } else {
         console.error(xmlHttpRequest.statusText);
       }
