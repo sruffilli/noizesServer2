@@ -119,23 +119,23 @@ function fireTTS() {
   console.log(ttsURL);
 }
 
-function ttsItaliano(text) {
-  var ttsURL = window.location.origin + "/tts?lang=it-IT&text=" + text;
+function invokeTTS(lang, text) {
+  var ttsURL = window.location.origin + "/tts?lang="+lang+"&text=" + text;
   remotePlayUrl(ttsURL);
   playLocalUrl(ttsURL);
   console.log(ttsURL);  
 }
 
-function proverbio() {
+function proverb(lang) {
 
   var oReq = new XMLHttpRequest();
 
   oReq.onload = function reqListener () {
     var lines = this.responseText.split('\n');
-    ttsItaliano(lines[Math.floor(Math.random()*lines.length)]);
+    invokeTTS(lang, lines[Math.floor(Math.random()*lines.length)]);
   }
 
-  oReq.open("get", "/proverbi.txt", true);
+  oReq.open("get", '/proverbs_'+lang+'.txt', true);
   oReq.send();
 
 }
