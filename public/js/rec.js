@@ -20,13 +20,17 @@ function startRecording(button) {
     }, startUserMedia, function(e) {
       __log('No live audio input: ' + e);
     });
-    askedUserConsent=true;
-  }
+    recorder && recorder.record();
+    recorder && recorder.stop();
+    askedUserConsent = true;
 
-  recorder && recorder.record();
-  button.disabled = true;
-  button.nextElementSibling.disabled = false;
-  __log('Recording...');
+  } else {
+
+    recorder && recorder.record();
+    button.disabled = true;
+    button.nextElementSibling.disabled = false;
+    __log('Recording...');
+  }
 }
 
 function stopRecording(button) {
@@ -52,7 +56,7 @@ function uploadBlob(blob) {
   var xmlHttpRequest = new XMLHttpRequest();
   xmlHttpRequest.open("POST", '/uploadWav', true);
 
-  xmlHttpRequest.onload = function (e) {
+  xmlHttpRequest.onload = function(e) {
     if (xmlHttpRequest.readyState === 4) {
       if (xmlHttpRequest.status === 200) {
         console.log(xmlHttpRequest.responseText);
@@ -62,7 +66,7 @@ function uploadBlob(blob) {
       }
     }
   };
-  
+
   var formData = new FormData();
   // This should automatically set the file name and type.
   formData.append("file", blob);
