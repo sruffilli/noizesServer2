@@ -4,6 +4,7 @@ function __log(e, data) {
 
 var audio_context;
 var recorder;
+var askedUserConsent = false;
 
 function startUserMedia(stream) {
   var input = audio_context.createMediaStreamSource(stream);
@@ -13,6 +14,15 @@ function startUserMedia(stream) {
 }
 
 function startRecording(button) {
+  if (!askedUserConsent) {
+    navigator.getUserMedia({
+      audio: true
+    }, startUserMedia, function(e) {
+      __log('No live audio input: ' + e);
+    });
+    askedUserConsent=true;
+  }
+
   recorder && recorder.record();
   button.disabled = true;
   button.nextElementSibling.disabled = false;
@@ -75,9 +85,5 @@ window.onload = function init() {
     alert('No web audio support in this browser!');
   }
 
-  navigator.getUserMedia({
-    audio: true
-  }, startUserMedia, function(e) {
-    __log('No live audio input: ' + e);
-  });
+
 };
