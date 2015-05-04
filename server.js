@@ -35,7 +35,7 @@ var io = require('socket.io')(webServer);
 var generateName = require('sillyname');
 
 // Where the sounds are stored, relative to the app
-var uploadsPath = "./public/assets";
+var uploadsPath = __dirname + '/public/assets';
 // Where the sounds can be retrieved relative to the public dir
 var uploadsWebPath = "/assets"
 
@@ -92,8 +92,7 @@ io.on('connection', function(socket) {
   // generates a JSON with the name and absolute url path of sound assets
   socket.on('getSoundList', function() {
     console.log("Returning soundList:" + soundList);
-
-    fs.readdir(__dirname + "/" + uploadsPath, function(err, files) {
+    fs.readdir(uploadsPath, function(err, files) {
       console.log(JSON.stringify(files));
       var tmpSoundlist = {};
       if (err == undefined) {
@@ -180,7 +179,7 @@ app.get('/tts', function(req, res) {
  */
 
 app.post('/uploadWav', [multer({
-  dest: './public/uploads/'
+  dest: __dirname + '/public/uploads/'
 }), function(req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
