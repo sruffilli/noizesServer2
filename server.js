@@ -93,7 +93,7 @@ io.on('connection', function(socket) {
   socket.on('getSoundList', function() {
     console.log("Returning soundList:" + soundList);
 
-    fs.readdir("./" + uploadsPath, function(err, files) {
+    fs.readdir(__dirname + "/" + uploadsPath, function(err, files) {
       console.log(JSON.stringify(files));
       var tmpSoundlist = {};
       if (err == undefined) {
