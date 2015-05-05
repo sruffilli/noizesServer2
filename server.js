@@ -1,11 +1,11 @@
 // Port used by the service
 const port = 8888;
 // FQDN (+ port). Will be used to return a soundlist with full absolute paths
-const fqdn = "http://localhost:" + port;
+const fqdn = 'http://localhost:' + port;
 
 // Lovely requirements
 require('shelljs/global');
-var fs = require("fs");
+var fs = require('fs');
 var shellescape = require('shell-escape');
 var tmp = require('tmp');
 
@@ -15,8 +15,32 @@ var multer = require('multer');
 var app = express();
 var webServer = require('http').createServer(app);
 
+// usernames which are currently connected to the chat
+var usernames = {};
+var numUsers = 0;
+
+/*
+ *   Logger setup
+ */
+
+var winston = require('winston');
+winston.level = 'debug';
+
+function logger(message, options) {
+  options = options || {};
+  if (typeof options.loglevel === 'undefined') {
+      options.loglevel = 'info';
+  }
+
+  if (typeof options.socket === 'undefined') {
+    options.socket = {};
+  }
+
+  winston.log(options.loglevel, new Date().toISOString() + ', ' + options.remoteAddress + ', Users: ' + numUsers+ ', ' + options.socket.id + ', ' + options.socket.username + ', ' +  message);
+}
+
 webServer.listen(port, function() {
-  console.log('Server listening at port %d', port);
+  logger('Server listening at port ' +  port);
 });
 
 /*
@@ -31,22 +55,19 @@ app.use(express.static(__dirname + '/public'));
 
 var io = require('socket.io')(webServer);
 
-// A "sillyname" will automatically be generated for every client connecting to the service
+// A 'sillyname' will automatically be generated for every client connecting to the service
 var generateName = require('sillyname');
 
 // Where the sounds are stored, relative to the app
 var uploadsPath = __dirname + '/public/assets';
 // Where the sounds can be retrieved relative to the public dir
-var uploadsWebPath = "/assets"
+var uploadsWebPath = '/assets'
 
 var soundList = {};
 
-// usernames which are currently connected to the chat
-var usernames = {};
-var numUsers = 0;
-
 io.on('connection', function(socket) {
   var addedUser = false;
+
   // when the client emits 'add user', this listens and executes
   socket.on('add user', function() {
     // we store the username in the socket session for this client
@@ -68,7 +89,7 @@ io.on('connection', function(socket) {
       username: socket.username,
       numUsers: numUsers
     });
-    console.log(socket.username + " joined")
+    logger('Joined', {remoteAddress: socket.handshake.address, socket: socket});
   });
 
 
@@ -79,34 +100,35 @@ io.on('connection', function(socket) {
       username: socket.username,
       numUsers: numUsers
     });
-    console.log(socket.username + " played " + url);
+    logger('Play requested, broadcasting play_url ' + url, {remoteAddress: socket.handshake.address, socket: socket});
   });
 
   // broadcasts the stop command to all connected clients
   socket.on('stopPlayback', function() {
     socket.broadcast.emit('stop');
-    console.log(socket.username + " requested stop ");
+    logger('Requested stopPlayback, broadcasting stop ', {remoteAddress: socket.handshake.address, socket: socket});
   });
 
 
   // generates a JSON with the name and absolute url path of sound assets
   socket.on('getSoundList', function() {
-    console.log("Returning soundList:" + soundList);
+    logger('Soundlist requested', {remoteAddress: socket.handshake.address, socket: socket});
     fs.readdir(uploadsPath, function(err, files) {
-      console.log(JSON.stringify(files));
       var tmpSoundlist = {};
       if (err == undefined) {
         for (var i = 0; i < files.length; i++) {
           tmpSoundlist[i] = {
-            name: files[i].replace(".mp3", ""),
-            url: fqdn + uploadsWebPath + "/" + files[i]
+            name: files[i].replace('.mp3', ''),
+            url: fqdn + uploadsWebPath + '/' + files[i]
           }
         }
         soundList = tmpSoundlist;
 
-        socket.emit("soundList", {
+        socket.emit('soundList', {
           soundList: soundList
         });
+        logger('Soundlist returned', {remoteAddress: socket.handshake.address, socket: socket});
+
       }
     });
   });
@@ -123,7 +145,7 @@ io.on('connection', function(socket) {
         numUsers: numUsers
       });
     }
-    console.log(socket.username + " left");
+    logger('Left', {remoteAddress: socket.handshake.address, socket: socket});
 
   });
 });
@@ -134,42 +156,45 @@ io.on('connection', function(socket) {
  */
 
 app.get('/tts', function(req, res) {
+  var remoteAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
   var lang = req.query.lang;
   var text = req.query.text;
 
-  if (text == undefined || lang == undefined || text == "" || lang == "") {
-    res.send("Error on query string");
+  logger('TTS: requested for lang ' + req.query.lang + ' text: ' + req.query.text, {remoteAddress: remoteAddress});
+
+  if (text == undefined || lang == undefined || text == '' || lang == '') {
+    res.send('Error on query string');
+      logger('TTS: reported error on input', {remoteAddress: remoteAddress});
     return;
   }
-
-  console.log(req.query.lang + " " + req.query.text);
 
   //Generating a new tmp filename (won't be used directly, see below)
   var tmpPath = tmp.tmpNameSync({
     template: '/tmp/tmp-XXXXXX'
   });
 
-  var wavePath = tmpPath + ".wav";
-  var mp3Path = tmpPath + ".mp3";
+  var wavePath = tmpPath + '.wav';
+  var mp3Path = tmpPath + '.mp3';
 
   var ttsCMD = ['pico2wave', '-w', wavePath, '-l', lang, text];
-  console.log("Executing command: " + shellescape(ttsCMD));
+  logger('TTS Executing command: ' + shellescape(ttsCMD), {remoteAddress: remoteAddress});
 
   if (exec(shellescape(ttsCMD)).code == 0) {
-    console.log("TTS OK");
+    logger('TTS OK', {remoteAddress: remoteAddress});
     var wav2mp3CMD = ['avconv', '-i', wavePath, mp3Path]
-    console.log("Executing command: " + shellescape(wav2mp3CMD));
+    logger('TTS: Executing command: ' + shellescape(wav2mp3CMD), {remoteAddress: remoteAddress});
 
     if (exec(shellescape(wav2mp3CMD)).code == 0) {
-      console.log("Wave to MP3 OK");
+      logger('TTS: Wave to MP3 OK', {remoteAddress: remoteAddress});
       res.sendFile(mp3Path);
     } else {
-      console.log("Wave to MP3 KO");
-      res.send("Well mate, this is really weird. Something that was never supposed to fail, just failed. I guess sh!t happens. Lame error. No, really.");
+      logger('TTS: Wave to MP3 KO', {remoteAddress: remoteAddress});
+      res.send('Well mate, this is really weird. Something that was never supposed to fail, just failed. I guess sh!t happens. Lame error. No, really.');
     }
   } else {
-    console.log("TTS failed");
-    res.send("TTS failed: are you passing a proper ISO lang code? Are you trying to do funky stuff with text? I'm watching you.");
+    logger('TTS failed', {remoteAddress: remoteAddress});
+    res.send('TTS failed: are you passing a proper ISO lang code? Are you trying to do funky stuff with text? I\'m watching you.');
   }
 
 });
@@ -181,18 +206,20 @@ app.get('/tts', function(req, res) {
 app.post('/uploadWav', [multer({
   dest: __dirname + '/public/uploads/'
 }), function(req, res) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  var remoteAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-  console.log("Upload received and saved to " + req.files.file);
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+
+  logger('Upload received and saved to ' + req.files.file, {remoteAddress: remoteAddress});
 
   var avconvCMD = 'avconv -i ' + req.files.file.path + ' ' + req.files.file.path + '.mp3';
 
-  console.log("Executing " + avconvCMD);
+  logger('Executing ' + avconvCMD, {remoteAddress: remoteAddress});
 
   if (exec(avconvCMD).code == 0) {
-    console.log("conversion OK");
-  } else console.log("conversion KO");
+    logger('conversion OK', {remoteAddress: remoteAddress});
+  } else logger('conversion KO', {remoteAddress: remoteAddress});
   exec('rm ' + req.files.file.path);
   res.send(fqdn + '/uploads/' + req.files.file.name + '.mp3').end()
 }]);
