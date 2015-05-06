@@ -12,6 +12,7 @@ function remotePlayUrl(url) {
 
 function setConnectedUsers(numUsers) {
   appStatus.connectedUsers = numUsers;
+  document.getElementById("connectedUsersLabel").innerHTML= appStatus.connectedUsers + " connected users";
 }
 
 function log(text) {

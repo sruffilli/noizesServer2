@@ -74,13 +74,15 @@
         </select>
         <button class="btn btn-danger btn-lg" onclick="fireTTS();" name="TTS">Talk</button>
       </div>
+        <button class="btn btn-danger btn-lg" onclick="startStopRecording(this);" id="recbutton" name="Recording">🔒 Click to unlock microphone</button>
+
         <a class="btn btn-danger btn-lg" onclick="proverb('en-US');" id="proverbioEN" name="Proverb EN">Proverb EN</a>
         <a class="btn btn-danger btn-lg" onclick="proverb('it-IT');" id="proverbioIT" name="Proverbio IT">Proverbio IT</a>
         <a class="btn btn-danger btn-lg" onclick="fireStop();" id="stop" name="Stop Playback">Stop Playback</a>
         <div id="buttons-container"></div>
       </div>
       <div class="col-md-4">
-        <button class="btn btn-danger btn-lg" onclick="startStopRecording(this);" id="recbutton" name="Recording">🔊</button>
+        <div id="connectedUsersLabel">1 connected users</div>
         <div>
           <strong>Local playback: </strong>
           <input type="checkbox" id="localPlaybackToggle" onchange="toggleLocalPlayback();" checked data-toggle="toggle">

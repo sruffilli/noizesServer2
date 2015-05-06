@@ -24,18 +24,19 @@ function startStopRecording(button) {
     recorder && recorder.record();
     recorder && recorder.stop();
     askedUserConsent = true;
+    document.getElementById('recbutton').innerHTML="🔊 Click to start recording";
 
   } else {
 
     if (!recording) {
       recorder && recorder.record();
       recording=true;
-      document.getElementById('recbutton').innerHTML="🔇";
+      document.getElementById('recbutton').innerHTML="🔇 Click to stop recording";
       __log('Recording...');
     } else {
       recorder && recorder.stop();
       recording=false;
-      document.getElementById('recbutton').innerHTML="🔊";
+      document.getElementById('recbutton').innerHTML="🔊 Click to start recording";
       upload();
       recorder.clear();
 

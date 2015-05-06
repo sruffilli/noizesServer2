@@ -104,7 +104,10 @@ io.on('connection', function(socket) {
 
   // broadcasts the stop command to all connected clients
   socket.on('stopPlayback', function() {
-    socket.broadcast.emit('stop');
+    socket.broadcast.emit('stop', {
+      username: socket.username,
+      numUsers: numUsers      
+    });
     logger('Requested stopPlayback, broadcasting stop ', {remoteAddress: socket.handshake.address, socket: socket});
   });
 
@@ -124,7 +127,9 @@ io.on('connection', function(socket) {
         soundList = tmpSoundlist;
 
         socket.emit('soundList', {
-          soundList: soundList
+          soundList: soundList,
+          username: socket.username,
+          numUsers: numUsers    
         });
         logger('Soundlist returned', {remoteAddress: socket.handshake.address, socket: socket});
 
