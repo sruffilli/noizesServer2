@@ -67,10 +67,10 @@ var soundList = {};
 
 io.on('connection', function(socket) {
   var addedUser = false;
+  
+  logger('New user joined', {remoteAddress: socket.handshake.address, socket: socket});
 
-  // when the client emits 'add user', this listens and executes
-  socket.on('add user', function() {
-    // we store the username in the socket session for this client
+  if (!addedUser) {
     socket.username = generateName();
     // add the client's username to the global list
     usernames[socket.username] = socket.username;
@@ -89,9 +89,8 @@ io.on('connection', function(socket) {
       username: socket.username,
       numUsers: numUsers
     });
-    logger('Joined', {remoteAddress: socket.handshake.address, socket: socket});
-  });
-
+    logger('Logged', {remoteAddress: socket.handshake.address, socket: socket});    
+  }
 
   // broadcasts the play_url command to all connected clients
   socket.on('play', function(url) {

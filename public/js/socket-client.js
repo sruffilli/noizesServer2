@@ -60,9 +60,6 @@ function parseSoundsJson(soundList) {
   }
 }
 
-
-socket.emit('add user');
-log("Logging in...")
 socket.emit('getSoundList');
 log("Requesting soundlist...");
 
