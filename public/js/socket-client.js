@@ -3,11 +3,14 @@ var appStatus = {}
 var myUsername;
 var localAudio = new Audio();
 var localPlayback = document.getElementById("localPlaybackToggle").checked;
+var remotePlayback = document.getElementById("remotePlaybackToggle").checked;
 var verboseLogging = document.getElementById("verboseToggle").checked;
 
 function remotePlayUrl(url) {
-  socket.emit("play", url);
-  log("You fired " + url);
+  if (remotePlayback) {
+    socket.emit("play", url);
+    log("You fired " + url);
+  }
 }
 
 function setConnectedUsers(numUsers) {
@@ -102,6 +105,10 @@ socket.on('stop', function() {
 
 function toggleLocalPlayback() {
   localPlayback = document.getElementById("localPlaybackToggle").checked;
+}
+
+function toggleRemotePlayback() {
+  remotePlayback = document.getElementById("remotePlaybackToggle").checked;
 }
 
 function toggleVerbose() {
